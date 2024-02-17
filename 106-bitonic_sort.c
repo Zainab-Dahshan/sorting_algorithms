@@ -1,102 +1,69 @@
 #include "sort.h"
 /**
- * swap - swaps elements of the array checking the position
- * @array: Array with numbers to be sorted
- * @i: position
- * @j: position
- * @dir: 1 if is ascending
- */
-void swap(int *array, size_t i, size_t j, size_t dir)
+ * merge - merges l and r arrays into original array
+ * @array: pointer to array
+ * @size: size of the array
+ * @l: pointer to left array
+ * @r: pointer to right array
+ **/
+void merge(int *array, int *l, int *r, size_t size)
 {
-	int tmp = 0;
+	int i = 0, j = 0, k = 0;
+	int size_l, size_r;
 
-	if (dir == (array[i] > array[j]))
+	size_l = size / 2;
+	size_r = size - size_l;
+	printf("Merging...\n");
+	printf("[left]: ");
+	print_array(l, size_l);
+	printf("[right]: ");
+	print_array(r, size_r);
+
+	while (i < size_l && j < size_r)
 	{
-		tmp = array[i];
-		array[i] = array[j];
-		array[j] = tmp;
+		if (l[i] < r[j])
+			array[k++] = l[i++];
+		else
+			array[k++] = r[j++];
 	}
+
+	while (i < size_l)
+		array[k++] = l[i++];
+
+	while (j < size_r)
+		array[k++] = r[j++];
+	printf("[Done]: ");
+	print_array(array, size);
 }
 /**
- * merge - swaps elements of the array
- * @array: Array with numbers to be sorted
- * @low: Starting point of the lower part of the array
- * @size: size of the new partition
- * @dir: 1 if is ascending
- */
-void merge(int *array, size_t low, size_t size, size_t dir)
+ * merge_sort - sorts an array of integers in ascending order using
+ * the Merge sort algorithm
+ * @array: pointer to array
+ * @size: size of the array
+ **/
+void merge_sort(int *array, size_t size)
 {
-	size_t k = 0, i = 0;
+	size_t mid = 0, i;
+	int left[1000];
+	int right[1000];
 
-	if (size > 1)
-	{
-		k = size / 2;
-		i = low;
-		while (i < low + k)
-			swap(array, i, i + k, dir), i++;
-		merge(array, low, k, dir);
-		merge(array, low + k, k, dir);
-	}
-}
-/**
- * sort_ - Sorts the array using recursion
- * @array: Array with numbers to be sorted
- * @low: Starting point of the lower part of the array
- * @size: size of the new partition
- * @dir: 1 if is ascending
- * @length: size of the original array
- */
-void sort_(int *array, size_t low, size_t size, size_t dir, size_t length)
-{
-	size_t k = 0;
-	int *aux = NULL;
-
-	if (size > 1)
-	{
-		k = size / 2;
-		if (k > 1)
-		{
-			printf("Merging [%li/%li] (UP):\n", k, length);
-			aux = &array[low];
-			print_array(aux, k);
-		}
-		sort_(array, low, k, 1, length);
-		if (k > 1)
-		{
-			printf("Result [%li/%li] (UP):\n", k, length);
-			print_array(aux, k);
-			printf("Merging [%li/%li] (DOWN):\n", k, length);
-			aux = &array[low + k];
-			print_array(aux, k);
-		}
-		sort_(array, low + k, k, 0, length);
-		if (k > 1)
-		{
-			printf("Result [%li/%li] (DOWN):\n", k, length);
-			print_array(aux, k);
-		}
-		merge(array, low, size, dir);
-	}
-}
-/**
- * bitonic_sort - Bitonic sort is a comparison-based sorting algorithm
- * that can be run in parallel. It focuses on converting a random sequence
- * of numbers into a bitonic sequence, one that monotonically increases, then
- * decreases. Rotations of a bitonic sequence are also bitonic.
- * @array: Array of data to be sorted
- * @size: size of the original array
- */
-void bitonic_sort(int *array, size_t size)
-{
-	size_t i = 1;
-
-	while (i < size)
-		i <<= 1;
-	if (size < 2 || (i ^ size) != 0)
+	if (!array)
 		return;
-	printf("Mergin [%li/%li] (UP):\n", size, size);
-	print_array(array, size);
-	sort_(array, 0, size, 1, size);
-	printf("Result [%li/%li] (UP):\n", size, size);
-	print_array(array, size);
+
+	if (size < 2)
+		return;
+
+	mid = size / 2;
+	/*left = (int*)malloc(sizeof(int) * mid);*/
+	/*right = (int*)malloc(sizeof(int) * (size - mid));*/
+
+	for (i = 0; i < mid; i++)
+		left[i] = array[i];
+
+	for (i = mid; i < size; i++)
+		right[i - mid] = array[i];
+
+	merge_sort(left, mid);
+	merge_sort(right, size - mid);
+	merge(array, left, right, size);
 }
