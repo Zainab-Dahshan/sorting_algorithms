@@ -1,69 +1,98 @@
 #include "sort.h"
 /**
- * merge - merges l and r arrays into original array
- * @array: pointer to array
- * @size: size of the array
- * @l: pointer to left array
- * @r: pointer to right array
- **/
-void merge(int *array, int *l, int *r, size_t size)
+ * td_merge - Divides input array in two halves,
+ * calls itself for the two halves and then merges
+ * the two sorted halves. The merge() function is
+ * used for merging two halves.
+ * @array: Array of data to be sorted
+ * @begin: Start of the array
+ * @middle: middle of the array
+ * @end: end of array
+ * @copy: copy of the original array
+ */
+void td_merge(int *array, size_t begin, size_t middle, size_t end, int *copy)
 {
-	int i = 0, j = 0, k = 0;
-	int size_l, size_r;
+	size_t i = begin, j = middle, k = begin, l = middle, flag = 0;
 
-	size_l = size / 2;
-	size_r = size - size_l;
 	printf("Merging...\n");
 	printf("[left]: ");
-	print_array(l, size_l);
-	printf("[right]: ");
-	print_array(r, size_r);
-
-	while (i < size_l && j < size_r)
+	while (k < middle)
 	{
-		if (l[i] < r[j])
-			array[k++] = l[i++];
-		else
-			array[k++] = r[j++];
+		if (flag)
+			printf(", ");
+		printf("%i", array[k]), k++, flag = 1;
 	}
-
-	while (i < size_l)
-		array[k++] = l[i++];
-
-	while (j < size_r)
-		array[k++] = r[j++];
+	printf("\n");
+	flag = 0;
+	printf("[right]: ");
+	while (l < end)
+	{
+		if (flag)
+			printf(", ");
+		printf("%i", array[l]), l++, flag = 1;
+	}
+	printf("\n");
+	k = begin;
+	while (k < end)
+	{
+		if (i < middle && (j >= end || array[i] <= array[j]))
+			copy[k] = array[i], i++;
+		else
+			copy[k] = array[j], j++;
+		k++;
+	}
 	printf("[Done]: ");
-	print_array(array, size);
+	k = begin, flag = 0;
+	while (k < end)
+	{
+		if (flag)
+			printf(", ");
+		printf("%i", copy[k]), k++, flag = 1;
+	}
+	printf("\n");
 }
 /**
- * merge_sort - sorts an array of integers in ascending order using
- * the Merge sort algorithm
- * @array: pointer to array
+ * top_downsplit - Divides input array in two halves.
+ * with the left array being smaller than the right array
+ * @array: Array of data to be sorted
+ * @begin: Start of the array
+ * @end: end of array
+ * @copy: copy of the original array
+ */
+void top_downsplit(int *array, size_t begin, size_t end, int *copy)
+{
+	size_t middle = 0;
+
+	if (end - begin <= 1)
+		return;
+	middle = (begin + end) / 2;
+	top_downsplit(copy, begin, middle, array);
+	top_downsplit(copy, middle, end, array);
+	td_merge(array, begin, middle, end, copy);
+}
+/**
+ * merge_sort - Divides input array in two halves,
+ * calls itself for the two halves and then merges
+ * the two sorted halves. The merge() function is
+ * used for merging two halves.
+ * @array: Array of data to be sorted
  * @size: size of the array
- **/
+ */
 void merge_sort(int *array, size_t size)
 {
-	size_t mid = 0, i;
-	int left[1000];
-	int right[1000];
+	int *copy = NULL;
+	size_t i = 0;
 
-	if (!array)
+	if (!array || size < 2)
 		return;
-
-	if (size < 2)
+	copy = malloc(4 * size);
+	if (!copy)
 		return;
-
-	mid = size / 2;
-	/*left = (int*)malloc(sizeof(int) * mid);*/
-	/*right = (int*)malloc(sizeof(int) * (size - mid));*/
-
-	for (i = 0; i < mid; i++)
-		left[i] = array[i];
-
-	for (i = mid; i < size; i++)
-		right[i - mid] = array[i];
-
-	merge_sort(left, mid);
-	merge_sort(right, size - mid);
-	merge(array, left, right, size);
+	while (i < size)
+		copy[i] = array[i], i++;
+	top_downsplit(array, 0, size, copy);
+	i = 0;
+	while (i < size)
+		array[i] = copy[i], i++;
+	free(copy);
 }
