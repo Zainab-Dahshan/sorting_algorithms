@@ -1,69 +1,120 @@
 #include "sort.h"
+#include <stdio.h>
+
 /**
- * merge - merges l and r arrays into original array
- * @array: pointer to array
- * @size: size of the array
- * @l: pointer to left array
- * @r: pointer to right array
- **/
-void merge(int *array, int *l, int *r, size_t size)
+ * printcheck - print a range
+ * @array: The array to print
+ * @r1: Less range
+ * @r2: Final range
+ * Return: Nothing
+ */
+void printcheck(int *array, int r1, int r2)
 {
-	int i = 0, j = 0, k = 0;
-	int size_l, size_r;
+	int i;
 
-	size_l = size / 2;
-	size_r = size - size_l;
-	printf("Merging...\n");
-	printf("[left]: ");
-	print_array(l, size_l);
-	printf("[right]: ");
-	print_array(r, size_r);
-
-	while (i < size_l && j < size_r)
+	for (i = r1; i <= r2; i++)
 	{
-		if (l[i] < r[j])
-			array[k++] = l[i++];
-		else
-			array[k++] = r[j++];
+		if (i > r1)
+			printf(", ");
+		printf("%d", array[i]);
 	}
-
-	while (i < size_l)
-		array[k++] = l[i++];
-
-	while (j < size_r)
-		array[k++] = r[j++];
-	printf("[Done]: ");
-	print_array(array, size);
+	printf("\n");
 }
 /**
- * merge_sort - sorts an array of integers in ascending order using
- * the Merge sort algorithm
- * @array: pointer to array
- * @size: size of the array
- **/
-void merge_sort(int *array, size_t size)
+ * _swap - swap two elements in an array
+ * @array: THe array to change the values
+ * @i: A index
+ * @j: Another index
+ * @dir: Direction of the array
+ * Return: Nothing
+ */
+void _swap(int *array, int i, int j, int dir)
 {
-	size_t mid = 0, i;
-	int left[1000];
-	int right[1000];
+	int tmp;
 
-	if (!array)
+	if (dir == (array[i] > array[j]))
+	{
+		tmp = array[i];
+		array[i] = array[j];
+		array[j] = tmp;
+	}
+}
+/**
+ * bitonic_merge - swap the elements to sort
+ * @array: Array to sort
+ * @low: The low element in the range to sort
+ * @size: The size of the range to sort
+ * @dir: Indicate which half are manage
+ * @r_size: The size of the all array
+ * Return: Nothing
+ */
+void bitonic_merge(int *array, int low, int size, int dir, const int r_size)
+{
+	int k = size, i = low;
+
+	if (size > 1)
+	{
+		k = size / 2;
+
+		for (i = low; i < low + k; i++)
+			_swap(array, i, i + k, dir);
+
+		bitonic_merge(array, low, k, dir, r_size);
+		bitonic_merge(array, low + k, k, dir, r_size);
+	}
+}
+/**
+ * _sort - segmentate the array
+ * @array: The array to sort
+ * @low: The lowest element in each range
+ * @size: Size of the range to sort
+ * @dir: Indicate which half are manage
+ * @r_size: The size of the all array
+ * Return: Nothing
+ */
+void _sort(int *array, int low, int size, int dir, const int r_size)
+{
+	int k = size;
+
+	if (size > 1)
+	{
+		if (dir == 1)
+			printf("Merging [%d/%d] (UP):\n", size, r_size);
+		if (dir == 0)
+			printf("Merging [%d/%d] (DOWN):\n", size, r_size);
+		printcheck(array, low, low + k - 1);
+
+		k = size / 2;
+		_sort(array, low, k, 1, r_size);
+
+		_sort(array, low + k, k, 0, r_size);
+
+		bitonic_merge(array, low, size, dir, r_size);
+		if (dir == 1)
+		{
+			printf("Result [%d/%d] (UP):\n", size, r_size);
+			printcheck(array, low, low + 2 * k - 1);
+		}
+		if (dir == 0)
+		{
+			printf("Result [%d/%d] (DOWN):\n", size, r_size);
+			printcheck(array, low, low + 2 * k - 1);
+		}
+	}
+}
+/**
+ * bitonic_sort - call the sort function
+ * @array: The array to sort
+ * @size: Size of the array
+ * Return: Nothing
+ */
+void bitonic_sort(int *array, size_t size)
+{
+	int up = 1;
+	const int r_size = (int)size;
+
+	if (size < 2 || !array)
 		return;
 
-	if (size < 2)
-		return;
-
-	mid = size / 2;
-	/*left = (int*)malloc(sizeof(int) * mid);*/
-	/*right = (int*)malloc(sizeof(int) * (size - mid));*/
-
-	for (i = 0; i < mid; i++)
-		left[i] = array[i];
-
-	for (i = mid; i < size; i++)
-		right[i - mid] = array[i];
-
-	merge_sort(left, mid);
-	merge_sort(right, size - mid);
-	merge(array, left, right, size);
+	_sort(array, 0, (int)size, up, r_size);
 }
